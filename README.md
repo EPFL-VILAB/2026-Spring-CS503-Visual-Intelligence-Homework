@@ -50,4 +50,4 @@ We provide an overview of the submission requirements, score distribution, and d
 
 For **environment setup, training commands, and cluster (SCITAS/IZAR) usage** related to `nanoGPT`, `nanoMaskGIT`, and `nano4M`, please see the detailed instructions in [`NanoFM_Homeworks/README.md`](/NanoFM_Homeworks/README.md).
 
-Please submit all materials via the course Moodle page. Submission links will be released approximately two weeks before each homework deadline.
+Please submit all materials via the course Moodle page. Submission links will be released at the latest two weeks before each homework deadline.

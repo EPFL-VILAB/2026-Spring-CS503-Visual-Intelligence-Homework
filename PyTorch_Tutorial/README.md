@@ -1,6 +1,6 @@
 # Pytorch Tutorial: Introduction to PyTorch
 
-The first homework is designed to help you become familiar with the basic concepts of PyTorch, which we will use in future projects. In the provided three notebooks, we cover the following topics:
+The tutorial is designed to help you become familiar with the basic concepts of PyTorch, which we will use in future projects. In the provided three notebooks, we cover the following topics:
 
 - **01**: PyTorch Tensor Fundamentals  
 - **02**: PyTorch Workflow  
