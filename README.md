@@ -17,7 +17,7 @@ In addition, we provide several tutorials:
 
 1. [Cluster_Tutorial](/Cluster_Tutorial): overview of the two main compute resources used in this course ([SCITAS](/Cluster_Tutorial/scitas_tutorial.md) and [GNOTO](/Cluster_Tutorial/gnoto_Tutorial/gnoto_tutorial.md)) and how to run jobs on them. We **recommend** running the Transformer homework on GNOTO and the NanoFM homeworks on SCITAS.
 - [SCITAS_Tutorial](/Cluster_Tutorial/scitas_tutorial.md): detailed instructions for running interactive and batch jobs on SCITAS (Izar).
-- [GNOTO_Tutorial](/Cluster_Tutorial/gnoto_tutorial.md): detailed guide for running in a JupyterLab-based environment (GNOTO).
+- [GNOTO_Tutorial](/Cluster_Tutorial/gnoto_Tutorial/gnoto_tutorial.md): detailed guide for running in a JupyterLab-based environment (GNOTO).
 2. [PyTorch_Tutorial](/PyTorch_Tutorial): a brief PyTorch refresher for those not familiar with PyTorch (*however, we do not recommend taking this course if this is your first time using PyTorch*). The tutorial will not be graded.
 
 **Important note on compute resources:** GPU resources are limited and shared across the class. **Do not wait until the last day** to start or finish your homework. If you cannot obtain GPUs due to last-minute congestion, this will **not** be accepted as a valid reason for late submission or deadline extension.
