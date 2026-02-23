@@ -1,0 +1,14 @@
+*.egg-info
+4M_Tutorial/retrieval_data
+nano4M/outputs
+nano4M/wandb
+nano4M/data/
+nano4M_sol/outputs
+nano4M_sol/wandb
+nano4M_sol/data/
+*.tar.gz
+*.jpg
+*.pyc
+.DS_Store
+__pycache__
+.ipynb_checkpoints

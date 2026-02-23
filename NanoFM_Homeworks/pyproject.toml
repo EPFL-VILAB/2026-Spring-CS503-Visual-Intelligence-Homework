@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nanofm"
+version = "1.0.0"
+description = "nano4M"
+requires-python = ">=3.8"
+readme = {file = "README.md", content-type = "text/markdown"}
+dependencies = [
+    "fourm @ git+https://github.com/apple/ml-4m.git@main#egg=fourm",
+    "omegaconf",
+    "hydra-core",
+    "mediapy",
+    "loguru",
+    "ipykernel",
+]
+
+[project.urls]
+"Homepage" = "https://vilab.epfl.ch"
+
+[tool.setuptools.packages.find]
+exclude = ["cfgs*", "assets*", "notebooks*"]
+
+[tool.wheel]
+exclude = ["cfgs*", "assets*", "notebooks*"]

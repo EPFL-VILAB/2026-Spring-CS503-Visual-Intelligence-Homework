@@ -1,0 +1,104 @@
+# Designed to be run on 4xV100-32GB GPUs
+
+run_name: auto # Auto-generate a run name
+output_dir: ./outputs/auto # Set to auto to use the run_name
+
+# Global variables used throughout the config
+global_vars:
+  batch_size: 128 # per GPU (512 global batch size)
+  modalities: ["tok_rgb@256", "tok_depth@256", "tok_normal@256", "scene_desc"] # Input and output modalities
+  vocab_sizes: [64000, 64000, 64000, 50304] # Vocab sizes for each modality
+  max_seq_lens: [256, 256, 256, 256] # Max sequence lengths for each modality
+  input_alphas: [1.0, 1.0, 1.0, 1.0] # Input dirichlet alpha values for each modality
+  target_alphas: [1.0, 1.0, 1.0, 1.0] # Target dirichlet alpha values for each modality
+  input_tokens_range: [1, 128] # Min and max encoder tokens during training
+  target_tokens_range: [1, 128] # Min and max decoder tokens during training
+
+# Training
+batch_size: ${global_vars.batch_size}
+total_tokens: 5000 # in millions of tokens
+warmup_tokens: 500 # in millions of tokens
+num_tokens_per_sample: 256 # Number of tokens per sample to count towards the total tokens seen. 128 in + 128 out
+lr: 0.0006 # Max learning rate
+min_lr: 0.000001 # Min learning rate after cosine decay
+weight_decay: 0.05 # AdamW weight decay
+clip_grad: 1.0 # Gradient clipping norm
+dtype: fp16 # Precision. Choose fp16 on V100s, bf16 on A100s or later. In case of instability, try fp32.
+
+# Eval
+eval_freq: 100 # in millions of tokens
+save_ckpt_freq: 1000 # in millions of tokens
+
+# Logging
+log_wandb: True
+wandb_project: CS503_nano4M # wandb project name
+wandb_entity: <YOUR_WANDB_ENTITY_NAME> # Set to your wandb username
+wandb_run_name: auto # Set to auto to use the run_name
+
+# Model config
+model_config:
+  _target_: nanofm.models.fourm.FourM
+  enc_tokens_read_key: enc_tokens
+  dec_tokens_read_key: dec_tokens
+  enc_modalities_read_key: enc_modalities
+  dec_modalities_read_key: dec_modalities
+  enc_positions_read_key: enc_positions
+  dec_positions_read_key: dec_positions
+  enc_pad_mask_read_key: enc_pad_mask
+  dec_pad_mask_read_key: dec_pad_mask
+  modalities: ${global_vars.modalities}
+  vocab_sizes: ${global_vars.vocab_sizes}
+  max_seq_lens: ${global_vars.max_seq_lens}
+  dim: 512 # Model dimension
+  enc_depth: 6 # Number of encoder layers
+  dec_depth: 6 # Number of decoder layers
+  head_dim: 64 # Dim of each attention head
+  per_modality_loss_avg: True
+
+# Train loader config
+train_loader_config:
+  _target_: nanofm.data.multimodal.create_multimodal_masked_dataloader
+  root_dir: clevr # REPLACE WITH YOUR DATASET PATH
+  split: train
+  modalities: ${global_vars.modalities}
+  vocab_sizes: ${global_vars.vocab_sizes}
+  max_seq_lens: ${global_vars.max_seq_lens}
+  overlap_vocab: True # Use the same vocab for all modalities
+  overlap_posembs: True # Use the same pos embeddings for all modalities
+  input_alphas: ${global_vars.input_alphas}
+  target_alphas: ${global_vars.target_alphas}
+  input_tokens_range: ${global_vars.input_tokens_range}
+  target_tokens_range: ${global_vars.target_tokens_range}
+  sample_from_k_augmentations: 10
+  text_tokenizer_path: gpt2
+  text_max_length: 256
+  batch_size: ${global_vars.batch_size}
+  infinite: True
+  num_workers: 10
+  pin_memory: True
+  shuffle: True
+  drop_last: True
+  distributed: True
+
+# Eval loader config
+eval_loader_config:
+  _target_: nanofm.data.multimodal.create_multimodal_masked_dataloader
+  root_dir: clevr # REPLACE WITH YOUR DATASET PATH
+  split: val
+  modalities: ${global_vars.modalities}
+  vocab_sizes: ${global_vars.vocab_sizes}
+  max_seq_lens: ${global_vars.max_seq_lens}
+  overlap_vocab: True # Use the same vocab for all modalities
+  overlap_posembs: True # Use the same pos embeddings for all modalities
+  input_alphas: ${global_vars.input_alphas}
+  target_alphas: ${global_vars.target_alphas}
+  input_tokens_range: ${global_vars.input_tokens_range}
+  target_tokens_range: ${global_vars.target_tokens_range}
+  text_tokenizer_path: gpt2
+  text_max_length: 256
+  batch_size: ${global_vars.batch_size}
+  num_workers: 10
+  pin_memory: True
+  shuffle: False
+  drop_last: False
+  distributed: True
