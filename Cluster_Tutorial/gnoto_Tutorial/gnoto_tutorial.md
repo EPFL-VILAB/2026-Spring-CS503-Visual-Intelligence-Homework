@@ -37,8 +37,8 @@ Use a custom environment when you need extra packages beyond the default gnoto s
 ## 1. Create and activate a `venv`
 
 ```bash
-my_venvs_create com304_env
-my_venvs_activate com304_env
+my_venvs_create cs503_env
+my_venvs_activate cs503_env
 ```
 
 ## 2. Install packages
@@ -59,7 +59,7 @@ my_venvs_list
 Remove an environment you no longer need:
 
 ```bash 
-my_venvs_remove com304_env
+my_venvs_remove cs503_env
 ```
 
 # How to create a notebook kernel
@@ -68,12 +68,12 @@ A new virtual environment is available in terminal sessions only. To use it in J
 
 ## 1. Activate an existing environment
 ```bash
-my_venvs_activate com304_env
+my_venvs_activate cs503_env
 ```
 
 ## 2. Create a kernel for this environment
 ```bash
-my_kernels_create com304_env "COM304 Environment"
+my_kernels_create cs503_env "CS503 Environment"
 ```
 
 ## 3. Use in notebook
@@ -87,10 +87,6 @@ If the kernel does not appear immediately, stop the notebook from **Running Term
 
 
 # FAQ
-
-- **Can we use gnoto for all exercise sessions?**
-
-  No. Compute resources per student in gnoto are limited (~10 GB VRAM), which may not be enough for more advanced exercises (such as the 5th homework notebook on the 4M Tutorial). It is mainly useful for debugging, visualizations, and completing exercises that are not very compute-intensive (e.g., the PyTorch tutorial).
 
 - **Will my data be retained after I re-login into the gnoto server?**
 
