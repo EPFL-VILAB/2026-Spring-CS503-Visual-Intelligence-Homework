@@ -16,7 +16,7 @@ Welcome to the CS503 homework repository. This repository contains all homework 
 In addition, we provide several tutorials:
 
 1. [Cluster_Tutorial](/Cluster_Tutorial): overview of the two main compute resources used in this course (SCITAS and GNOTO) and how to run jobs on them. We **recommend** running the Transformer homework on GNOTO and the NanoFM homeworks on SCITAS.
-- [SCITAS_Tutorial](/Cluster_Tutorial/SCITAS_Tutorial.md): detailed instructions for running interactive and batch jobs on SCITAS (Izar).
+- [SCITAS_Tutorial](/Cluster_Tutorial/scitas_tutorial.md): detailed instructions for running interactive and batch jobs on SCITAS (Izar).
 - [GNOTO_Tutorial](/Cluster_Tutorial/gnoto_tutorial.md): detailed guide for running in a JupyterLab-based environment (GNOTO).
 2. [PyTorch_Tutorial](/PyTorch_Tutorial): a brief PyTorch refresher for those not familiar with PyTorch (*however, we do not recommend taking this course if this is your first time using PyTorch*). The tutorial will not be graded.
 
