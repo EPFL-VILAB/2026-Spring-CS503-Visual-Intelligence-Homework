@@ -118,7 +118,6 @@ class GPT(nn.Module):
         x = x + self.positional_embedding[:L, :] # Shape: [B, L, D]
 
         mask = torch.tril(torch.ones(L, L, dtype=torch.bool, device=x.device))
-        mask = ~mask # Invert: True where we want to mask (future tokens)
         mask = rearrange(mask, "n1 n2 -> 1 n1 n2")
             
         x = self.trunk(x, mask)
