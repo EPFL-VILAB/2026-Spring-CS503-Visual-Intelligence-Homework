@@ -14,3 +14,7 @@ __pycache__
 .ipynb_checkpoints
 
 /Transformer_Homework/data
+
+*.err
+*.out
+NanoFM_Homeworks/wandb/
