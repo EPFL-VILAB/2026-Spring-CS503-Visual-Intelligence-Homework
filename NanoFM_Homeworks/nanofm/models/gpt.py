@@ -138,8 +138,8 @@ class GPT(nn.Module):
              A scalar loss value.
         """
         loss = F.cross_entropy(
-            logits.view(-1, logits.size(-1)), # Shape: [B*L, vocab_size]
-            target_seq.view(-1), # Shape: [B*L]
+            logits.reshape(-1, logits.size(-1)), # Shape: [B*L, vocab_size]
+            target_seq.reshape(-1), # Shape: [B*L]
             ignore_index=padding_idx,
             reduction='mean'
         )
