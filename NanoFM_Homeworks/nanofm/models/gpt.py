@@ -115,7 +115,7 @@ class GPT(nn.Module):
 
         x = self.input_embedding(x) # Shape: [B, L, D]
         
-        x = x + self.positional_embedding[:, :L, :] # Shape: [B, L, D]
+        x = x + self.positional_embedding[:L, :] # Shape: [B, L, D]
 
         mask = torch.tril(torch.ones(L, L, dtype=torch.bool, device=x.device))
         mask = ~mask # Invert: True where we want to mask (future tokens)
