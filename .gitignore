@@ -13,3 +13,4 @@ nano4M_sol/data/
 __pycache__
 .ipynb_checkpoints
 wandb/
+NanoFM_Homeworks/outputs
