@@ -90,7 +90,7 @@ class Attention(nn.Module):
 
         self.attn_out_proj = nn.Linear(dim, dim, bias=proj_bias)
 
-    def forward(self, x: torch.Tensor, : Optional[torch.Tensor] = None) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, mask: Optional[torch.Tensor] = None) -> torch.Tensor:
         B, L, D = x.shape # Batch size, sequence length, and dimension
 
         # TODO: Compute the keys K, queries Q, and values V from x. Each should be of shape [B num_heads L head_dim].
