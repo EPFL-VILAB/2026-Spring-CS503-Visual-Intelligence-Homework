@@ -202,8 +202,8 @@ class GPT(nn.Module):
             # Make sure to pass the temperature, top_k and top_p arguments
             next_token, _ = sample_tokens(
                 logits[:, -1, :], # Shape: [B, vocab_size]
-                temp=temp, 
-                top_p=top_p, 
+                temperature=temp,
+                top_p=top_p,
                 top_k=top_k
             ) # Shape: [B]
             
