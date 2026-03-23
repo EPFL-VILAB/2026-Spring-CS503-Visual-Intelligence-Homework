@@ -18,3 +18,7 @@ __pycache__
 *.err
 *.out
 NanoFM_Homeworks/wandb/
+
+*/clevr*
+
+*/outputs/
