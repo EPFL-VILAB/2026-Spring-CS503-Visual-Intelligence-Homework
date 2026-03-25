@@ -146,7 +146,7 @@ class CrossAttention(nn.Module):
         q = rearrange(q, "b n (h d) -> b h n d", h=self.num_heads)
 
         # TODO: Compute the keys K and values V from the context. Each should be of shape [B num_heads M head_dim].
-        k, v = rearrange(self.kv(context), "b m (h d) -> h b m d", h=self.num_heads)
+        k, v = rearrange(self.kv(context), "b m (kv h d) -> kv b h m d", h=self.num_heads, kv=2)
 
         # TODO: Compute the attention matrix (pre softmax) and scale it by 1/sqrt(d_k). It should be of shape [B num_heads N M].
         # Hint: Use the already defined self.scale
