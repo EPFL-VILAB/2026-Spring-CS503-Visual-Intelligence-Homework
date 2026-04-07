@@ -36,13 +36,14 @@ We provide an overview of the submission requirements, score distribution, and d
      - [`transformer_layers.py`](/NanoFM_Homeworks/nanofm/modeling/transformer_layers.py) with task-specific functions implemented.
      - [`CS503_FM_part2_nanoMaskGIT.ipynb`](/NanoFM_Homeworks/notebooks/CS503_FM_part2_nanoMaskGIT.ipynb) with all required cells completed and outputs saved.
      - [`maskgit.py`](/NanoFM_Homeworks/nanofm/models/maskgit.py) with all required sections implemented.
-     - `assets/` folder containing the required screenshot images.
+     - [`assets.zip`](/NanoFM_Homeworks/notebooks/assets) file containing the required screenshot images.
 
 3. **nano4M (15%)** — **due 12 April, 23:59**
    - Submit:
      - [`CS503_FM_part3_nano4M.ipynb`](/NanoFM_Homeworks/notebooks/CS503_FM_part3_nano4M.ipynb) with all required cells completed and outputs saved.
      - [`fourm.py`](/NanoFM_Homeworks/nanofm/models/fourm.py) with all required sections implemented.
-     - [`assets`](/NanoFM_Homeworks/notebooks/assets) folder containing the required screenshot images.
+     - [`assets.zip`](/NanoFM_Homeworks/notebooks/assets) file containing the required screenshot images.
+     - [`transformer_layers.py`](/NanoFM_Homeworks/nanofm/modeling/transformer_layers.py) with task-specific functions implemented.
 
 4. **nanoVLM (7.5%) & nanoFlowMatching (7.5%)** — **due 26 April, 23:59**
    - Submit:
