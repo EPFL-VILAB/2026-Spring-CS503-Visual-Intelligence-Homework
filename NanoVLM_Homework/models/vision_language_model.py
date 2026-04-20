@@ -70,41 +70,48 @@ class VisionLanguageModel(nn.Module):
         # TODO
         # Step 1: Compute image embeddings
         # Process image through vision backbone and vision modality projector
-        image_embeds = ...
+        image_embeds = self.MP(self.vision_encoder(image))
 
 
         # Step 2: Compute text embeddings
         # Get text embeddings using the token_embedding layer of self.decoder
-        text_embeds = ...
+        text_embeds = self.decoder.token_embedding(input_ids)
 
 
         # Step 3: Concatenate image and text embeddings
-        combined_embeds = ...
+        combined_embeds = torch.cat([image_embeds, text_embeds], dim=1)
 
 
         # Step 4: Extend the attention mask
         # The current attention_mask only covers text tokens (B, T)
         # Note: image tokens should always be attended to
         if attention_mask is not None:
-            image_attention = ... # define attention mask for image
-            attention_mask = ...  # combined attention mask
+            image_attention = torch.ones(
+                image_embeds.size(0), image_embeds.size(1),
+                device=attention_mask.device, dtype=attention_mask.dtype,
+            ) # define attention mask for image
+            attention_mask = torch.cat([image_attention, attention_mask], dim=1)  # combined attention mask
 
         # Step 5: LLM forward pass
         # Pass combined embeddings and attention mask to the LLM decoder to get the final token embeddings
-        output_token_embeddings = ...
+        output_token_embeddings = self.decoder(combined_embeds, attention_mask)
 
         loss = None
         # Step 6, 7 & 8: Compute Loss (only if targets are provided)
         if targets is not None:
             # Step 6: Project the embeddings to vocabulary distribution via decoder head (self.decoder.head)
-            logits = ...
+            logits = self.decoder.head(output_token_embeddings)
 
             # Step 7: Obtain the text part of logits (ignore image tokens)
-            logits = ...
+            logits = logits[:, image_embeds.size(1):, :]
 
             # Step 8: Compute Cross-Entropy loss on answer tokens only
             # Hint: use ignore_index to mask out non-answer tokens
-            loss = ...
+            loss = F.cross_entropy(
+                logits.reshape(-1, logits.size(-1)),
+                targets.reshape(-1),
+                ignore_index=-100,
+            )
 
         return logits, loss
 
@@ -124,24 +131,27 @@ class VisionLanguageModel(nn.Module):
         # TODO
         # Step 1: Image Embeddings
         # Pass image through vision encoder and modality projector
-        image_embd_encoder = ...
-        image_embd = ...
+        image_embd_encoder = self.vision_encoder(image)
+        image_embd = self.MP(image_embd_encoder)
 
 
         # Step 2: Text Token Embeddings
         # Embed the input token ids using the decoder's token_embedding layer (self.decoder.token_embedding)
-        token_embd = ...
+        token_embd = self.decoder.token_embedding(input_ids)
 
 
         # Step 3: Concatenate image and text embeddings
-        combined_embed = ...
+        combined_embed = torch.cat([image_embd, token_embd], dim=1)
         batch_size = image_embd.size(0)
         img_seq_len = image_embd.size(1)
 
         # Step 4: Extend Attention Mask
         if attention_mask is not None:
-            image_attention_mask = ...  # hint: we want all image tokens to be attended
-            attention_mask = ...  # concat image_attention + text attention_mask
+            image_attention_mask = torch.ones(
+                batch_size, img_seq_len,
+                device=attention_mask.device, dtype=attention_mask.dtype,
+            )  # hint: we want all image tokens to be attended
+            attention_mask = torch.cat([image_attention_mask, attention_mask], dim=1)  # concat image_attention + text attention_mask
 
         # Step 5: Autoregressive Generation Loop
         # At each sub-step (till max_new_tokens):
@@ -157,32 +167,35 @@ class VisionLanguageModel(nn.Module):
         outputs = combined_embed
         generated_tokens = torch.zeros((batch_size, max_new_tokens), device=input_ids.device, dtype=input_ids.dtype)
 
-        for i in range(...):
+        for i in range(max_new_tokens):
 
-            model_out = ....  # (i)
-
-
-            last_token_logits = ... # (ii)
-
-            if ...:  # (iii)
-                last_token_logits = ...
-
-            probs = ... # (iv)
-            next_token = ...
-            ... # fill in the generated next token in generated_tokens at ith position
+            model_out = self.decoder(outputs, attention_mask)  # (i)
 
 
-            generated_embed = ... # (v)
-            outputs = ...  # concat generated_embed to outputs along dim=1
+            last_token_logits = model_out[:, -1, :] # (ii)
+
+            if not self.decoder.lm_use_tokens:  # (iii)
+                last_token_logits = self.decoder.head(last_token_logits)
+
+            probs = torch.softmax(last_token_logits, dim=-1) # (iv)
+            next_token = torch.multinomial(probs, num_samples=1)
+            generated_tokens[:, i] = next_token.squeeze(-1) # fill in the generated next token in generated_tokens at ith position
+
+
+            generated_embed = self.decoder.token_embedding(next_token) # (v)
+            outputs = torch.cat([outputs, generated_embed], dim=1)  # concat generated_embed to outputs along dim=1
 
             if attention_mask is not None:
-                attention_mask = ... # (vi)
+                attention_mask = torch.cat(
+                    [attention_mask, torch.ones(batch_size, 1, device=attention_mask.device, dtype=attention_mask.dtype)],
+                    dim=1,
+                ) # (vi)
 
 
-            if ...: # vii)
+            if (next_token == 2).all(): # vii)
                 break
 
-        return ... # (viii)
+        return generated_tokens # (viii)
 
     @torch.no_grad()
     def generate_with_kv_cache(self, input_ids, image, attention_mask=None, max_new_tokens=5):
@@ -206,43 +219,43 @@ class VisionLanguageModel(nn.Module):
         
         # Step 1: Build combined image + text embeddings
         # hint: you've done this in the previous exercise
-        image_embd = ...
-        token_embd = ...
-        combined_embd = ...
+        image_embd = self.MP(self.vision_encoder(image))
+        token_embd = self.decoder.token_embedding(input_ids)
+        combined_embd = torch.cat([image_embd, token_embd], dim=1)
         batch_size = image_embd.size(0)
 
         # Step 2: PREFILL
         # Run the full prompt through decoder.forward_kv (past_key_values should be None at the start).
-        model_out, past_key_values = ...
+        model_out, past_key_values = self.decoder.forward_kv(combined_embd, past_key_values=None)
 
         # Step 3: Obtain the first generated token from the last position
-        last_logits = ...
+        last_logits = model_out[:, -1, :]
         if not self.decoder.lm_use_tokens:
-            last_logits = ... # apply lm head (self.decoder.head) if decoder is in embedding mode
+            last_logits = self.decoder.head(last_logits) # apply lm head (self.decoder.head) if decoder is in embedding mode
 
         # Step 4: Sample new token by first applying the softmax (torch.softmax) and then the multinomial sampling (torch.multinomial)
-        probs = ...
-        next_token = ...
+        probs = torch.softmax(last_logits, dim=-1)
+        next_token = torch.multinomial(probs, num_samples=1)
 
         generated_tokens = torch.zeros((batch_size, max_new_tokens), device=input_ids.device, dtype=input_ids.dtype)
-        ... # fill in the generated next token in generated_tokens at 0th position
+        generated_tokens[:, 0] = next_token.squeeze(-1) # fill in the generated next token in generated_tokens at 0th position
 
         # Step 5: DECODE LOOP
         for i in range(1, max_new_tokens):
 
-            next_embd = ... # embed only the single last-generated token
+            next_embd = self.decoder.token_embedding(next_token) # embed only the single last-generated token
 
-            model_out, past_key_values = ... # decoder.forward_kv processes 1 token but attends over full history via cache
+            model_out, past_key_values = self.decoder.forward_kv(next_embd, past_key_values=past_key_values) # decoder.forward_kv processes 1 token but attends over full history via cache
 
-            last_logits = ... # obtain the last token logits
+            last_logits = model_out[:, -1, :] # obtain the last token logits
             if not self.decoder.lm_use_tokens:
-                last_logits = ... # apply lm head (self.decoder.head) if decoder is in embedding mode
+                last_logits = self.decoder.head(last_logits) # apply lm head (self.decoder.head) if decoder is in embedding mode
 
-            probs = ...
-            next_token = ...
-            ... # fill in the generated next token in generated_tokens at ith position
+            probs = torch.softmax(last_logits, dim=-1)
+            next_token = torch.multinomial(probs, num_samples=1)
+            generated_tokens[:, i] = next_token.squeeze(-1) # fill in the generated next token in generated_tokens at ith position
 
-            if ...: # stop the generation loop if the generated token == 2 (token id 2 is the EOS token we used during training)
+            if (next_token == 2).all(): # stop the generation loop if the generated token == 2 (token id 2 is the EOS token we used during training)
                 break
 
         return generated_tokens

@@ -174,12 +174,12 @@ class LanguageModelGroupedQueryAttention(nn.Module):
         # If past_key_value is not None
         # prepend them to k and v along the sequence dimension (dim=2).
         if past_key_value is not None:
-            past_k, past_v = ...
-            k = ...
-            v = ...
+            past_k, past_v = past_key_value
+            k = torch.cat([past_k, k], dim=2)
+            v = torch.cat([past_v, v], dim=2)
 
         # Step 2:
-        present_key_value = ... # store present cache as a tuple
+        present_key_value = (k, v) # store present cache as a tuple
 
         k = k.repeat_interleave(self.n_kv_groups, dim=1)
         v = v.repeat_interleave(self.n_kv_groups, dim=1)
@@ -187,12 +187,12 @@ class LanguageModelGroupedQueryAttention(nn.Module):
         # Step 3: Attend — causal during prefilling stage, otherwise not during decode
         # During decoding (past_key_value is not None), T_q = 1, so causal masking
         # is unnecessary (a single query trivially attends to all past tokens).
-        is_decode = ...
+        is_decode = past_key_value is not None
         if self.sdpa:
             y = torch.nn.functional.scaled_dot_product_attention(
                 q, k, v,
                 dropout_p=self.dropout if self.training else 0.0,
-                is_causal=...  # causal only during prefilling
+                is_causal=not is_decode  # causal only during prefilling
             )
         else:
             T_q, T_k = q.size(2), k.size(2)
@@ -209,7 +209,7 @@ class LanguageModelGroupedQueryAttention(nn.Module):
         y = self.resid_dropout(y)
 
         # Step 4: Return the output y and the updated cache
-        return ...
+        return y, present_key_value
 
 # https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/modeling_llama.py#L160
 class LanguageModelMLP(nn.Module):
@@ -256,7 +256,7 @@ class LanguageModelBlock(nn.Module):
         res = x
         x = self.norm1(x)
 
-        x, present_key_value = ... # call self.attn.forward_kv
+        x, present_key_value = self.attn.forward_kv(x, cos, sin, past_key_value=past_key_value) # call self.attn.forward_kv
 
         x = res + x
 
@@ -265,7 +265,7 @@ class LanguageModelBlock(nn.Module):
         x = self.mlp(x)
         x = res + x
 
-        return ... # return both hidden states and the present_key_value
+        return x, present_key_value # return both hidden states and the present_key_value
 
 # https://github.com/meta-llama/llama3/blob/main/llama/model.py#L251
 class LanguageModel(nn.Module):
@@ -326,23 +326,23 @@ class LanguageModel(nn.Module):
         # Without cache: positions are [0, 1, ..., T-1].
         # With cache:    past tokens already occupy positions [0 .. past_len-1];
         #                new token(s) must continue from past_len.
-        past_length = ... # past length is 0 if past_key_values is None, otherwise get the length from past_key_values
+        past_length = 0 if past_key_values is None else past_key_values[0][0].size(2) # past length is 0 if past_key_values is None, otherwise get the length from past_key_values
 
-        position_ids = ... # position ids start from past length till past length + T
+        position_ids = torch.arange(past_length, past_length + T, device=x.device).unsqueeze(0).expand(B, -1) # position ids start from past length till past length + T
         cos, sin = self.rotary_embd(position_ids)
 
         # Step 2: Thread the KV cache through every block
         present_key_values = []
         for i, block in enumerate(self.blocks):
-            past_kv = ...  # fetch this layer's cache entry (or None on first call)
-            x, present_kv = ... # call block.forward_kv while passing the past_kv alongside with default arguments
-            ... # append the present_kv to the present_key_values, so it can be used in later decoding steps
+            past_kv = past_key_values[i] if past_key_values is not None else None  # fetch this layer's cache entry (or None on first call)
+            x, present_kv = block.forward_kv(x, cos, sin, past_key_value=past_kv) # call block.forward_kv while passing the past_kv alongside with default arguments
+            present_key_values.append(present_kv) # append the present_kv to the present_key_values, so it can be used in later decoding steps
 
         x = self.norm(x)
         if self.lm_use_tokens:
             x = self.head(x)
 
-        return ... # return hidden states and the updated kv cached list
+        return x, present_key_values # return hidden states and the updated kv cached list
 
     @torch.no_grad()
     def generate(self, inputs, max_new_tokens=20):
