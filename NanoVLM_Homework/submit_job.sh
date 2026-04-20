@@ -12,27 +12,36 @@
 
 # Batch-submit NanoVLM training on SCITAS (Izar).
 #
-# Usage (on the cluster; run from NanoVLM_Homework, or: sbatch --chdir=/path/to/NanoVLM_Homework ...):
-#   cd /path/to/NanoVLM_Homework && sbatch submit_job.sh <wandb_api_key> <huggingface_hub_token> [num_gpus]
-#
-# Example (2 GPUs; keys taken from your environment — do not commit real secrets):
-#   sbatch submit_job.sh "$WANDB_API_KEY" "$HUGGINGFACE_HUB_TOKEN" 2
-
+# Usage:
+#   sbatch submit_job.sh <wandb_api_key> <huggingface_hub_token>
 
 cd "${SLURM_SUBMIT_DIR:-.}"
 
-WANDB_KEY="${1:?Usage: sbatch submit_job.sh <wandb_api_key> <huggingface_hub_token> [num_gpus]}"
-HF_TOKEN="${2:?Usage: sbatch submit_job.sh <wandb_api_key> <huggingface_hub_token> [num_gpus]}"
-NUM_GPUS="${3:-2}"
+WANDB_KEY="${1:?Usage: sbatch submit_job.sh <wandb_api_key> <huggingface_hub_token>}"
+HF_TOKEN="${2:?Usage: sbatch submit_job.sh <wandb_api_key> <huggingface_hub_token>}"
 
-# Hugging Face cache / Hub data root on the course shared volume (adjust if your path differs).
-export HF_HOME=/work/com-304/com-304-nanovlm-dataset/
+################# Hugging Face / cache setup #####################
 
-# No Hub HTTP (avoids timeouts on compute nodes). Requires a complete cache under HF_HOME; comment out if downloads are needed.
-export HF_HUB_OFFLINE=1
-export HF_DATASETS_OFFLINE=1
+# Use local per-user writable caches.
+# Training data should now come from /work/cs-503/prepared/the_cauldron
+# via load_from_disk(...), so no shared read-only HF cache is needed here.
+
+CACHE_ROOT="${SCRATCH:-$HOME}/nanovlm_hf_cache"
+
+export HF_HOME="${CACHE_ROOT}/hf_home"
+export HF_DATASETS_CACHE="${CACHE_ROOT}/hf_datasets_cache"
+export TMPDIR="${CACHE_ROOT}/tmp"
+
+mkdir -p "$HF_HOME" "$HF_DATASETS_CACHE" "$TMPDIR"
+
+unset HF_HUB_OFFLINE
+unset HF_DATASETS_OFFLINE
 
 export HUGGINGFACE_HUB_TOKEN="$HF_TOKEN"
+export HF_HUB_DISABLE_TELEMETRY=1
+
+###############################################################
+
 export PYTHONUNBUFFERED=1
 export WANDB_API_KEY="$WANDB_KEY"
 
@@ -45,6 +54,13 @@ elif [[ -f "${HOME}/anaconda3/etc/profile.d/conda.sh" ]]; then
 else
   eval "$(conda shell.bash hook 2>/dev/null)" || true
 fi
-conda activate nanofm
 
-OMP_NUM_THREADS=1 torchrun --nproc_per_node="${NUM_GPUS}" train.py
+conda activate nanovlm
+
+echo "SLURM_JOB_ID=$SLURM_JOB_ID"
+echo "HOSTNAME=$(hostname)"
+echo "HF_HOME=$HF_HOME"
+echo "HF_DATASETS_CACHE=$HF_DATASETS_CACHE"
+echo "TMPDIR=$TMPDIR"
+
+OMP_NUM_THREADS=1 torchrun --nproc_per_node=2 train.py

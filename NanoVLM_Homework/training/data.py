@@ -1,5 +1,5 @@
 from data.processors import get_image_processor, get_tokenizer
-from datasets import load_dataset, concatenate_datasets
+from datasets import load_dataset, load_from_disk, concatenate_datasets
 from torch.utils.data import DataLoader, DistributedSampler
 from data.collators import VQACollator, MMStarCollator
 from data.datasets import MMStarDataset, VQADataset
@@ -21,7 +21,7 @@ def get_dataloaders(train_cfg, vlm_cfg, is_distributed=False, rank=0, world_size
         # Otherwise, we use the standard (path, name) signature.
         subset_path = os.path.join(train_cfg.train_dataset_path, dataset_name)
         if os.path.isdir(subset_path):
-            train_ds = load_dataset(subset_path)
+            train_ds = load_from_disk(subset_path)
         else:
             train_ds = load_dataset(train_cfg.train_dataset_path, dataset_name)
         

@@ -46,8 +46,16 @@ We provide an overview of the submission requirements, score distribution, and d
      - [`transformer_layers.py`](/NanoFM_Homeworks/nanofm/modeling/transformer_layers.py) with task-specific functions implemented.
 
 4. **nanoVLM (7.5%) & nanoFlowMatching (7.5%)** — **due 26 April, 23:59**
-   - Submit:
-     - Files and detailed instructions will be announced and shared soon.
+   - For NanoFlowMatching, submit:
+     - [`CS503_FM_part4_nanoFlowMatching.ipynb`](/NanoFM_Homeworks/notebooks/CS503_FM_part4_nanoFlowMatching.ipynb) (make sure to execute all cells)
+     - [`dit.py`](/NanoFM_Homeworks/nanofm/modeling/dit.py) with all required sections implemented.
+     - [`rectified_flow.py`](NanoFM_Homeworks/nanofm/models/rectified_flow.py) with all required sections implemented.
+   - For NanoVLM, submit:
+     - [`CS503_FM_part5_nanoVLM.ipynb`](/NanoVLM_Homework/CS503_FM_part5_nanoVLM.ipynb) (make sure to execute all cells and include the training curves as a .png file in the assets folder so that they render correctly in the notebook)
+     - [`data/collators.py`](/NanoVLM_Homework/data/collators.py) with all required sections implemented.
+     - [`models/modality_projector.py`](NanoVLM_Homework/models/modality_projector.py) with all required sections implemented.
+     - [`models/language_model.py`](NanoVLM_Homework/models/language_model.py) with all required sections implemented.
+     - [`models/vision_language_model.py`](NanoVLM_Homework/models/vision_language_model.py) with all required sections implemented.
 
 For **environment setup, training commands, and cluster (SCITAS/IZAR) usage** related to `nanoGPT`, `nanoMaskGIT`, and `nano4M`, please see the detailed instructions in [`NanoFM_Homeworks/README.md`](/NanoFM_Homeworks/README.md).
 

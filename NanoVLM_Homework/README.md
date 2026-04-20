@@ -7,7 +7,16 @@ Welcome to the nanoVLM exercise! In this exercise, you will be introduced to Vis
 
 ## Environment Setup
 
-Use previously created `nanofm` env.
+Follow the instructions below to set up the environment:
+```bash
+# Navigate to the nanoVLM folder
+cd nanoVLM
+# Create a new environment
+conda create -n nanovlm python=3.12
+conda activate nanovlm
+# Install the required packages
+pip install -r requirements.txt
+```
 
 ## Getting Started
 
