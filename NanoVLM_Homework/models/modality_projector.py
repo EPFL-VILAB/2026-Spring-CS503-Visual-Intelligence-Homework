@@ -39,7 +39,7 @@ class ModalityProjector(nn.Module):
         self.output_dim = cfg.lm_hidden_dim
         self.scale_factor = cfg.mp_pixel_shuffle_factor
         ## TODO
-        self.proj = ...
+        self.proj = nn.Linear(self.input_dim, self.output_dim, bias=False)
 
         self.apply(self._init_weights)
 
@@ -87,15 +87,14 @@ class ModalityProjector(nn.Module):
         assert seq_root % self.scale_factor == 0
 
         ## TODO
-        height = width = ... # set height and width
-        x = ...  # reshape x by expanding sequence dimension to height and width dimensions
-        h_out = ... # new height downsampled by scale factor
-        w_out = ... # new width downsampled by scale factor
+        height = width = seq_root # set height and width
+        x = x.view(bsz, height, width, embed_dim)  # reshape x by expanding sequence dimension to height and width dimensions
+        h_out = height // self.scale_factor # new height downsampled by scale factor
+        w_out = width // self.scale_factor # new width downsampled by scale factor
 
-        x = ... # reshape
-        x = ... # permute
-        x = ... # merge
-
+        x = x.view(bsz, h_out, self.scale_factor, w_out, self.scale_factor, embed_dim) # reshape
+        x = x.permute(0, 1, 3, 2, 4, 5).contiguous() # permute
+        x = x.view(bsz, h_out * w_out, embed_dim * self.scale_factor * self.scale_factor) # merge
 
         return x # expected shape → (B, h_out * w_out, sf * sf * E)
 
@@ -113,8 +112,8 @@ class ModalityProjector(nn.Module):
                 ``(batch_size, seq_len // scale_factor**2, lm_hidden_dim)``.
         """
         ## TODO
-        x = ... # perform pixel shuffle operation
-        x = ... # perform linear projection
+        x = self.pixel_shuffle(x) # perform pixel shuffle operation
+        x = self.proj(x) # perform linear projection
 
         return x
 
