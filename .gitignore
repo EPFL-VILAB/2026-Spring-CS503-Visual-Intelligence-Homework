@@ -26,3 +26,5 @@ NanoFM_Homeworks/wandb/
 */outputs/
 */wandb/*
 */checkpoints/*
+
+*/data/*
